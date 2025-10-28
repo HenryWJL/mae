@@ -128,7 +128,8 @@ def main(args):
     dataset_train = datasets.ImageFolder(os.path.join(args.data_path, 'train'), transform=transform_train)
     print(dataset_train)
 
-    if True:  # args.distributed:
+    global_rank = 0
+    if args.distributed:
         num_tasks = misc.get_world_size()
         global_rank = misc.get_rank()
         sampler_train = torch.utils.data.DistributedSampler(
@@ -149,7 +150,6 @@ def main(args):
         batch_size=args.batch_size,
         num_workers=args.num_workers,
         pin_memory=args.pin_mem,
-        drop_last=True,
     )
     
     # define the model
@@ -194,7 +194,7 @@ def main(args):
             log_writer=log_writer,
             args=args
         )
-        if args.output_dir and (epoch % 20 == 0 or epoch + 1 == args.epochs):
+        if args.output_dir and (epoch + 1) % 50 == 0:
             misc.save_model(
                 args=args, model=model, model_without_ddp=model_without_ddp, optimizer=optimizer,
                 loss_scaler=loss_scaler, epoch=epoch)
